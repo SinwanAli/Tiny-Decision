@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tiny Decisions Log</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 2rem;
+      background-color: #f5f5f5;
+    }
+    h2 {
+      margin-top: 2rem;
+    }
+    .card {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 10px;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    input, textarea, button {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 0.5rem;
+      margin-bottom: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 1rem;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .status-pending {
+      border-left: 5px solid orange;
+    }
+    .status-complete {
+      border-left: 5px solid green;
+    }
+  </style>
+</head>
+<body>
+  <h1>Tiny Decisions – A Personal Decision Log</h1>
+
+  <!-- Decision Form -->
+  <div class="card">
+    <h2>Log New Decision</h2>
+    <input type="text" id="title" placeholder="Decision title" />
+    <textarea id="pros" placeholder="Pros (optional)"></textarea>
+    <textarea id="cons" placeholder="Cons (optional)"></textarea>
+    <label>
+      <input type="checkbox" id="isThinking" checked /> Still Thinking?
+    </label>
+    <div id="finalDetails" style="display: none;">
+      <input type="text" id="finalChoice" placeholder="Final choice" />
+      <textarea id="explanation" placeholder="Why did you choose this?"></textarea>
+      <textarea id="reflection" placeholder="Reflection (optional)"></textarea>
+    </div>
+    <button onclick="addDecision()">Add Decision</button>
+  </div>
+
+  <!-- History Section -->
+  <div class="card">
+    <h2>Decision History</h2>
+    <div id="history"></div>
+  </div>
+
+  <script>
+    // Load decisions from localStorage
+    let decisions = JSON.parse(localStorage.getItem('tiny-decisions')) || [];
+
+    const isThinkingCheckbox = document.getElementById("isThinking");
+    const finalDetails = document.getElementById("finalDetails");
+
+    // Show/hide additional fields based on decision status
+    isThinkingCheckbox.addEventListener("change", () => {
+      finalDetails.style.display = isThinkingCheckbox.checked ? "none" : "block";
+    });
+
+    function addDecision() {
+      const title = document.getElementById("title").value;
+      const pros = document.getElementById("pros").value;
+      const cons = document.getElementById("cons").value;
+      const isThinking = isThinkingCheckbox.checked;
+      const finalChoice = document.getElementById("finalChoice").value;
+      const explanation = document.getElementById("explanation").value;
+      const reflection = document.getElementById("reflection").value;
+
+      const newDecision = {
+        id: Date.now(),
+        title,
+        date: new Date().toLocaleDateString(),
+        pros,
+        cons,
+        isThinking,
+        finalChoice,
+        explanation,
+        reflection
+      };
+
+      decisions.unshift(newDecision);
+      localStorage.setItem("tiny-decisions", JSON.stringify(decisions));
+      renderHistory();
+      resetForm();
+    }
+
+    function renderHistory() {
+      const historyDiv = document.getElementById("history");
+      historyDiv.innerHTML = "";
+
+      decisions.forEach((d) => {
+        const div = document.createElement("div");
+        div.className = `card ${d.isThinking ? "status-pending" : "status-complete"}`;
+        div.innerHTML = `
+          <h3>${d.title}</h3>
+          <p><strong>Date:</strong> ${d.date}</p>
+          <p><strong>Status:</strong> ${d.isThinking ? "Pending" : "Completed"}</p>
+          ${!d.isThinking ? `
+            <p><strong>Choice:</strong> ${d.finalChoice}</p>
+            <p><strong>Reason:</strong> ${d.explanation}</p>
+            ${d.reflection ? `<p><strong>Reflection:</strong> ${d.reflection}</p>` : ""}
+          ` : ""}
+        `;
+        historyDiv.appendChild(div);
+      });
+    }
+
+    function resetForm() {
+      document.getElementById("title").value = "";
+      document.getElementById("pros").value = "";
+      document.getElementById("cons").value = "";
+      document.getElementById("finalChoice").value = "";
+      document.getElementById("explanation").value = "";
+      document.getElementById("reflection").value = "";
+      isThinkingCheckbox.checked = true;
+      finalDetails.style.display = "none";
+    }
+
+    renderHistory();
+  </script>
+</body>
+</html>
